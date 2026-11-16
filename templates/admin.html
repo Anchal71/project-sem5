@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Admin Dashboard</h1>
+        <p>Manage the Library Automation System</p>
+        <a href="{{ url_for('logout') }}" class="btn">Logout</a>
+    </header>
+
+    <main class="dashboard">
+
+        <section class="panel">
+            <h2>Add New Book</h2>
+
+            <form method="POST" action="{{ url_for('add_book') }}">
+                <input type="text" name="title" placeholder="Book Title" required>
+                <input type="text" name="author" placeholder="Author Name" required>
+                <input type="text" name="category" placeholder="Book Category" required>
+                <input type="number" name="copies" placeholder="Number of Copies" min="1" required>
+                <button type="submit" class="btn">Add Book</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Manage Books</h2>
+
+            {% for book in books %}
+                <div class="book-card">
+                    <h3>{{ book.title }}</h3>
+                    <p>Author: {{ book.author }}</p>
+                    <p>Category: {{ book.category }}</p>
+                    <p>Available Copies: {{ book.available_copies }}</p>
+                </div>
+            {% else %}
+                <p>No books added yet.</p>
+            {% endfor %}
+        </section>
+
+        <section class="panel">
+            <h2>Pending Book Requests</h2>
+
+            {% for request in pending_requests %}
+                <div class="book-card">
+                    <h3>{{ request.book.title }}</h3>
+                    <p>Student: {{ request.user.username }}</p>
+                    <p>Status: {{ request.status }}</p>
+
+                    <form method="POST" action="{{ url_for('approve_request', request_id=request.id) }}">
+                        <button type="submit" class="btn">Approve</button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('reject_request', request_id=request.id) }}">
+                        <button type="submit" class="btn">Reject</button>
+                    </form>
+                </div>
+            {% else %}
+                <p>No pending requests.</p>
+            {% endfor %}
+        </section>
+
+        <section class="panel">
+            <h2>Issued Books</h2>
+
+            {% for borrowed in borrowed_books %}
+                <div class="book-card">
+                    <h3>{{ borrowed.book.title }}</h3>
+                    <p>Student: {{ borrowed.user.username }}</p>
+                    <p>Due Date: {{ borrowed.due_date }}</p>
+
+                    {% if today > borrowed.due_date %}
+                        <p>Overdue by {{ (today - borrowed.due_date).days }} days</p>
+                        <p>Fine: ₹{{ (today - borrowed.due_date).days * 5 }}</p>
+                    {% else %}
+                        <p>No overdue fine.</p>
+                    {% endif %}
+
+                    <form method="POST" action="{{ url_for('return_book', borrow_id=borrowed.id) }}">
+                        <button type="submit" class="btn">Mark as Returned</button>
+                    </form>
+                </div>
+            {% else %}
+                <p>No books currently issued.</p>
+            {% endfor %}
+        </section>
+
+    </main>
+</body>
+</html>
